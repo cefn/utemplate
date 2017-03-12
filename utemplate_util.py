@@ -1,9 +1,17 @@
 import sys
 import os
-import _io as io
+import os.path
+try:
+    import uio as io
+except ImportError:
+    import io
 import utemplate.source
 import utemplate.compiled
 
+
+if len(sys.argv) < 3:
+    print("Usage: %s <cmd> <template> [<template arg>...]" % sys.argv[0])
+    sys.exit(1)
 
 cmd = sys.argv[1]
 package = None
@@ -31,7 +39,8 @@ elif cmd == "render":
 elif cmd == "run":
     f_out = io.StringIO()
     with open(sys.argv[2]) as f_in:
-        c = utemplate.source.Compiler(f_in, f_out)
+        c = utemplate.source.Compiler(f_in, f_out,
+            loader=utemplate.source.Loader(None, os.path.dirname(sys.argv[2]) or "."))
         c.compile()
     ns = {}
     exec(f_out.getvalue(), ns)
@@ -39,4 +48,4 @@ elif cmd == "run":
         sys.stdout.write(x)
 
 else:
-    print("Unknown command: ", cmd)
+    print("Unknown command:", cmd)
